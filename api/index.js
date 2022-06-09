@@ -10,15 +10,25 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.post('/orders', async (req,res) => {
+app.get('/api/orders', async (req,res) => {
+  const db = await mongoClient();
+  if (!db) res.status(500).send('Systems Unavailable');
+
+  return db.collection('orders').find().toArray();
+});
+
+app.post('/api/orders', async (req,res) => {
   const db = await mongoClient();
   if (!db) res.status(500).send('Systems Unavailable');
 
   /*
     amount,
-    product_id
+    product_id,
+    email,
   */
   const amount = req.body.amount;
+  const product_id = req.body.product_id;
+  const email = req.body.email;
 
   // 0. call payments microservice
   const { data: paymentsResponse } = await axios.post('', {
@@ -53,7 +63,8 @@ app.post('/orders', async (req,res) => {
   // 4. call /notifications microservice and pass the order_id
   const { data: notificationResponse } = await axios.post('https://goweather.herokuapp.com/weather/california/', {
     order_id,
-    product_id
+    product_id,
+    email
   });
 
   // return the unique order id to client so they can check on status later
