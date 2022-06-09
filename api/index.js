@@ -10,6 +10,10 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+app.get('/api/test', async (req,res) => {
+  return res.send('Hello World Test!');
+});
+
 app.get('/api/orders', async (req,res) => {
   const db = await mongoClient();
   if (!db) res.status(500).send('Systems Unavailable');
@@ -31,7 +35,7 @@ app.post('/api/orders', async (req,res) => {
   const email = req.body.email;
 
   // 0. call payments microservice
-  const { data: paymentsResponse } = await axios.post('', {
+  const { data: paymentsResponse } = await axios.post('https://paymentservice.vercel.app/api/payments', {
     amount
   });
 
